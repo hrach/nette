@@ -33,6 +33,9 @@ class GroupedSelection extends Selection
 	/** @var int primary key */
 	protected $active;
 
+	/** @var bool */
+	protected $saveToken = FALSE;
+
 
 
 	/**
@@ -149,6 +152,11 @@ class GroupedSelection extends Selection
 		$refData = & $referencing['data'];
 
 		if ($refData === NULL) {
+			if (!isset($referencing['setSaveToken'])) {
+				$this->saveToken = TRUE;
+				$referencing['setSaveToken'] = TRUE;
+			}
+
 			$limit = $this->sqlBuilder->getLimit();
 			$rows = count($this->refTable->rows);
 			if ($limit && $rows > 1) {

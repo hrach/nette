@@ -45,6 +45,9 @@ class Selection extends Nette\Object implements \Iterator, \ArrayAccess, \Counta
 	/** @var ActiveRow[] modifiable data in [primary key => ActiveRow] format */
 	protected $data;
 
+	/** @var bool */
+	protected $saveToken = TRUE;
+
 	/** @var Selection[] */
 	protected $referenced = array();
 
@@ -476,8 +479,8 @@ class Selection extends Nette\Object implements \Iterator, \ArrayAccess, \Counta
 
 	protected function saveCacheState()
 	{
-		$cache = $this->connection->getCache();
-		if ($cache && !$this->sqlBuilder->getSelect()) {
+		if ($this->saveToken && ($cache = $this->connection->getCache()) && !$this->sqlBuilder->getSelect() && $this->accessed != $this->prevAccessed) {
+			dump("saving: " . get_class($this) . ' - ' . $this->name);
 			$cache->save(array(__CLASS__, $this->name, $this->sqlBuilder->getConditions()), $this->accessed);
 		}
 	}
