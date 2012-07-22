@@ -63,14 +63,6 @@ class Statement extends \PDOStatement
 	 */
 	public function execute($params = array())
 	{
-		static $types = array('boolean' => PDO::PARAM_BOOL, 'integer' => PDO::PARAM_INT,
-			'resource' => PDO::PARAM_LOB, 'NULL' => PDO::PARAM_NULL);
-
-		foreach ($params as $key => $value) {
-			$type = gettype($value);
-			$this->bindValue(is_int($key) ? $key + 1 : $key, $value, isset($types[$type]) ? $types[$type] : PDO::PARAM_STR);
-		}
-
 		$time = microtime(TRUE);
 		try {
 			parent::execute();
@@ -79,7 +71,7 @@ class Statement extends \PDOStatement
 			throw $e;
 		}
 		$this->time = microtime(TRUE) - $time;
-		$this->connection->__call('onQuery', array($this, $params)); // $this->connection->onQuery() in PHP 5.3
+		$this->connection->__call('onQuery', array($this)); // $this->connection->onQuery() in PHP 5.3
 
 		return $this;
 	}

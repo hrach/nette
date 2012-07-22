@@ -44,7 +44,7 @@ class ConnectionPanel extends Nette\Object implements Nette\Diagnostics\IBarPane
 
 
 
-	public function logQuery(Nette\Database\Statement $result, array $params = NULL)
+	public function logQuery(Nette\Database\Statement $result)
 	{
 		if ($this->disabled) {
 			return;
@@ -59,7 +59,7 @@ class ConnectionPanel extends Nette\Object implements Nette\Diagnostics\IBarPane
 			}
 		}
 		$this->totalTime += $result->getTime();
-		$this->queries[] = array($result->queryString, $params, $result->getTime(), $result->rowCount(), $result->getConnection(), $source);
+		$this->queries[] = array($result->queryString, $result->getTime(), $result->rowCount(), $result->getConnection(), $source);
 	}
 
 
@@ -93,13 +93,13 @@ class ConnectionPanel extends Nette\Object implements Nette\Diagnostics\IBarPane
 		$s = '';
 		$h = 'htmlSpecialChars';
 		foreach ($this->queries as $i => $query) {
-			list($sql, $params, $time, $rows, $connection, $source) = $query;
+			list($sql, $time, $rows, $connection, $source) = $query;
 
 			$explain = NULL; // EXPLAIN is called here to work SELECT FOUND_ROWS()
 			if ($this->explain && preg_match('#\s*\(?\s*SELECT\s#iA', $sql)) {
 				try {
 					$cmd = is_string($this->explain) ? $this->explain : 'EXPLAIN';
-					$explain = $connection->queryArgs("$cmd $sql", $params)->fetchAll();
+					$explain = $connection->queryArgs("$cmd $sql")->fetchAll();
 				} catch (\PDOException $e) {}
 			}
 
@@ -130,11 +130,6 @@ class ConnectionPanel extends Nette\Object implements Nette\Diagnostics\IBarPane
 				$s .= Nette\Diagnostics\Helpers::editorLink($source[0], $source[1])->class('nette-DbConnectionPanel-source');
 			}
 
-			$s .= '</td><td>';
-			foreach ($params as $param) {
-				$s .= Debugger::dump($param, TRUE);
-			}
-
 			$s .= '</td><td>' . $rows . '</td></tr>';
 		}
 
@@ -144,7 +139,7 @@ class ConnectionPanel extends Nette\Object implements Nette\Diagnostics\IBarPane
 			<h1>Queries: ' . count($this->queries) . ($this->totalTime ? ', time: ' . sprintf('%0.3f', $this->totalTime * 1000) . ' ms' : '') . '</h1>
 			<div class="nette-inner nette-DbConnectionPanel">
 			<table>
-				<tr><th>Time&nbsp;ms</th><th>SQL Statement</th><th>Params</th><th>Rows</th></tr>' . $s . '
+				<tr><th>Time&nbsp;ms</th><th>SQL Statement</th><th>Rows</th></tr>' . $s . '
 			</table>
 			</div>';
 	}

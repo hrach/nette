@@ -31,9 +31,6 @@ class SqlPreprocessor extends Nette\Object
 	/** @var array of input parameters */
 	private $params;
 
-	/** @var array of parameters to be processed by PDO */
-	private $remaining;
-
 	/** @var int */
 	private $counter;
 
@@ -53,13 +50,12 @@ class SqlPreprocessor extends Nette\Object
 	/**
 	 * @param  string
 	 * @param  array
-	 * @return array of [sql, params]
+	 * @return string  sql
 	 */
 	public function process($sql, $params)
 	{
 		$this->params = $params;
 		$this->counter = 0;
-		$this->remaining = array();
 
 		$cmd = strtoupper(substr(ltrim($sql), 0, 6)); // detect array mode
 		$this->arrayMode = $cmd === 'INSERT' || $cmd === 'REPLAC' ? 'values' : 'assoc';
@@ -74,7 +70,7 @@ class SqlPreprocessor extends Nette\Object
 			$sql .= ' ' . $this->formatValue($params[$this->counter++]);
 		}
 
-		return array($sql, $this->remaining);
+		return $sql;
 	}
 
 
@@ -96,13 +92,7 @@ class SqlPreprocessor extends Nette\Object
 	private function formatValue($value)
 	{
 		if (is_string($value)) {
-			if (strlen($value) > 20) {
-				$this->remaining[] = $value;
-				return '?';
-
-			} else {
-				return $this->connection->quote($value);
-			}
+			return $this->connection->quote($value);
 
 		} elseif (is_int($value)) {
 			return (string) $value;
@@ -111,8 +101,7 @@ class SqlPreprocessor extends Nette\Object
 			return rtrim(rtrim(number_format($value, 10, '.', ''), '0'), '.');
 
 		} elseif (is_bool($value)) {
-			$this->remaining[] = $value;
-			return '?';
+			return $value ? '1' : '0';
 
 		} elseif ($value === NULL) {
 			return 'NULL';
@@ -156,9 +145,12 @@ class SqlPreprocessor extends Nette\Object
 		} elseif ($value instanceof SqlLiteral) {
 			return $value->__toString();
 
+		} elseif (is_object($value)) {
+			return (string) $value;
+
 		} else {
-			$this->remaining[] = $value;
-			return '?';
+			throw new Nette\NotSupportedException('Type ' . gettype($value) . ' is not supported as sql parameter.');
+
 		}
 	}
 

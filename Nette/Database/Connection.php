@@ -154,18 +154,13 @@ class Connection extends PDO
 	 * @param  array
 	 * @return Statement
 	 */
-	public function queryArgs($statement, $params)
+	public function queryArgs($statement, $params = array())
 	{
-		foreach ($params as $value) {
-			if (is_array($value) || is_object($value)) {
-				$need = TRUE; break;
-			}
-		}
-		if (isset($need) && $this->preprocessor !== NULL) {
-			list($statement, $params) = $this->preprocessor->process($statement, $params);
+		if ($params) {
+			$statement = $this->preprocessor->process($statement, $params);
 		}
 
-		return $this->prepare($statement)->execute($params);
+		return $this->prepare($statement)->execute();
 	}
 
 
