@@ -99,7 +99,7 @@ class ConnectionPanel extends Nette\Object implements Nette\Diagnostics\IBarPane
 			if ($this->explain && preg_match('#\s*\(?\s*SELECT\s#iA', $sql)) {
 				try {
 					$cmd = is_string($this->explain) ? $this->explain : 'EXPLAIN';
-					$explain = $connection->queryArgs("$cmd $sql")->fetchAll();
+					$explain = iterator_to_array($connection->queryArgs("$cmd $sql"));
 				} catch (\PDOException $e) {}
 			}
 

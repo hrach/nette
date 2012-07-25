@@ -423,8 +423,7 @@ class Selection extends Nette\Object implements \Iterator, \ArrayAccess, \Counta
 		}
 
 		$this->rows = array();
-		$result->setFetchMode(PDO::FETCH_ASSOC);
-		foreach ($result as $key => $row) {
+		foreach ($result->getStatement() as $key => $row) {
 			$row = $result->normalizeRow($row);
 			$this->rows[isset($row[$this->primary]) ? $row[$this->primary] : $key] = $this->createRow($row);
 		}
@@ -437,9 +436,15 @@ class Selection extends Nette\Object implements \Iterator, \ArrayAccess, \Counta
 
 
 
-	protected function createRow(array $row)
+	protected function createRow(array $data)
 	{
-		return new ActiveRow($row, $this);
+		$row = new ActiveRow($this);
+		foreach ($data as $key => $value) {
+			$row->$key = $value;
+		}
+
+		$row->setAsInitialState();
+		return $row;
 	}
 
 
@@ -480,7 +485,6 @@ class Selection extends Nette\Object implements \Iterator, \ArrayAccess, \Counta
 	protected function saveCacheState()
 	{
 		if ($this->saveToken && ($cache = $this->connection->getCache()) && !$this->sqlBuilder->getSelect() && $this->accessed != $this->prevAccessed) {
-			dump("saving: " . get_class($this) . ' - ' . $this->name);
 			$cache->save(array(__CLASS__, $this->name, $this->sqlBuilder->getConditions()), $this->accessed);
 		}
 	}
