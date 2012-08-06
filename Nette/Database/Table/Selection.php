@@ -184,7 +184,7 @@ class Selection extends Nette\Object implements \Iterator, \ArrayAccess, \Counta
 	public function get($key)
 	{
 		$clone = clone $this;
-		$clone->where($this->primary, $key);
+		$clone->where($this->name . '.' . $this->primary, $key);
 		return $clone->fetch();
 	}
 
