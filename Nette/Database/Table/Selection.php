@@ -560,7 +560,16 @@ class Selection extends Nette\Object implements \Iterator, \ArrayAccess, \Counta
 			return $return->rowCount();
 		}
 
-		if (!isset($data[$this->primary]) && ($id = $this->connection->lastInsertId())) {
+		$id = false;
+
+		if ($this->connection->getAttribute(\PDO::ATTR_DRIVER_NAME) == 'pgsql') {
+			if (($row = $return->fetch()) !== false)
+				$id = $row->{$this->primary};
+		} else {
+			$id = $this->connection->lastInsertId();
+		}
+
+		if (!isset($data[$this->primary]) && $id) {
 			$data[$this->primary] = $id;
 			return $this->rows[$id] = $this->createRow($data);
 
