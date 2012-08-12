@@ -81,7 +81,9 @@ class SqlBuilder extends Nette\Object
 
 	public function getInsertQUery()
 	{
-		return "INSERT INTO {$this->delimitedTable}";
+		$isPgSQL = $this->connection->getAttribute(\PDO::ATTR_DRIVER_NAME) == 'pgsql';
+
+		return "INSERT INTO {$this->delimitedTable}" . ($isPgSQL ? ' ? RETURNING ' . $this->selection->primary : '');
 	}
 
 
